@@ -9,7 +9,7 @@
 ### Roles & Responsibilities:
 
 * I have been worked on major Azure Core services such as Computing, Networking and Storage services.(VMSS, AKS, ACR, Vnet, Load Balancers, Keyvault, Storage Accounts, Azure pipelines)
-* Maintaing the AKS workloads and cloud infra automation terraform IAC code since last 4 years.
+* Maintaing the AKS workloads and cloud infra automation using terraform IAC code since last 4 years.
 * Responsible for managing and maintaing the DevOps pipelines for build and deployment activities with standard branching startegies and branch protection rules
 and closely working with development on writing dockerfiles for their images and helping them to fix pipeline issues.
 * Also wrote multiple helm charts for our kubernetes workloads and deployed with the help of cicd pipelines
