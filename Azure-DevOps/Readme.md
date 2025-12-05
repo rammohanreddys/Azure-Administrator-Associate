@@ -326,3 +326,48 @@ steps:
     projectFile: 'src/WebApp/WebApp.csproj'
     buildConfiguration: 'Debug' # Override the default 'Release'
 ```
+### Strategies:
+
+The term "strategies" in the context of an Azure DevOps pipeline primarily refers to Deployment Strategies. These are methods for rolling out a new version of an application to a production environment while minimizing downtime, risk, and impact on users.
+
+Azure Pipelines supports implementing several advanced deployment strategies, often facilitated by Deployment Jobs and Environments in YAML.
+
+**Key Deployment Strategies in Azure DevOps:**
+
+Azure Pipelines supports the following strategies, which you define within a deployment job in your YAML:
+
+**1. Run Once (Recreate):**
+
+This is the simplest, default strategy, where the old version is replaced entirely by the new one in a single operation.
+
+* Process: The pipeline stops the current version, deploys the new version, and then starts the new version.
+* YAML Keyword: **strategy: runOnce**
+* Best For: Development or staging environments, or applications where brief downtime is acceptable.
+* Risk: Highest risk of downtime during the update.
+
+**2. Rolling Deployment (Rolling Updates)**
+
+A Rolling Deployment gradually replaces instances of the old version with instances of the new version over a set of deployment targets (like Virtual Machines).
+
+* Process: The deployment is done in small batches. The pipeline updates the first batch, performs health checks, and if successful, moves to the next batch until all instances are updated.
+* YAML Keyword: **strategy: rolling**
+* Best For: VM-based deployments, where you need to maintain application availability throughout the update.
+* Risk: Medium. Issues are limited to a small subset of servers but rollback can be complex once multiple batches are deployed.
+
+**3. Canary Deployment**
+
+A Canary Deployment is a high-control, phased rollout strategy where the new version is released to a very small subset of users or servers first.
+
+* Process: Deploy the new version (canary) to a small percentage of servers or users (e.g., 5%). Monitor performance and health metrics. If the canary is stable, promote it by gradually increasing the traffic/server percentage (e.g., to 25%, then 50%). If successful, finalize the rollout. If it fails, reject and roll back.
+* YAML Keyword: **strategy: canary**(best used with Kubernetes resources for traffic splitting).
+* Best For: Applications requiring extremely low risk and real-world testing before a full release.
+* Risk: Lowest, as only a fraction of users is initially impacted.
+
+**4. Blue/Green Deployment**
+
+Blue/Green Deployment uses two identical, full environments: Blue (the current, stable version) and Green (the new version).
+
+* Process: The new version is deployed and tested fully in the Green environment while all traffic remains on the Blue environment. Once validated, the traffic router/load balancer is instantly switched from Blue to Green. The old Blue environment is kept as a quick rollback option.
+* YAML Implementation: While Azure DevOps doesn't have a single blueGreen keyword, it's typically implemented using Deployment Slots in Azure App Service or by manipulating load balancer/traffic manager rules via steps in the pipeline.
+* Best For: Zero-downtime releases where a fast rollback is critical.
+* Risk: Low. The high cost of maintaining two full environments is the primary drawback.
