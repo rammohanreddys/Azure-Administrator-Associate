@@ -250,3 +250,79 @@ resources:
         include:
         - main                # Trigger on pushes to the 'main' branch of RepoB
 ```
+### Templates:
+
+A template in an Azure DevOps YAML pipeline is a reusable piece of YAML code that allows you to define common content, logic, and structure once, and then include or extend it across multiple pipelines.
+
+They are the primary method for implementing the DRY (Don't Repeat Yourself) principle in your Continuous Integration/Continuous Delivery (CI/CD) setup.
+
+**Key Benefits of Using Templates**:
+
+Templates provide significant advantages in managing your CI/CD process:
+
+* **Consistency:** They enforce standardized stages, jobs, and steps across all pipelines, ensuring every project follows the same build and deployment practices, security rules, and organizational standards.
+* **Reusability:** You write common logic (e.g., "Build .NET Application," "Run SonarQube Scan," or "Deploy to Staging") once, and reuse that file in dozens of different projects, minimizing redundant configuration.
+* **Maintenance:** When a standard process changes (e.g., updating a security scan task version), you only need to modify the logic in the single template file, and all pipelines that reference it automatically inherit the update.
+* **Security & Governance:** Templates can be used to define a strict structure that all pipelines must adhere to, preventing developers from overriding critical security steps or using unauthorized tasks.
+
+**Types of Templates in YAML:**
+
+Templates can be used to modularize any component of a YAML pipeline:
+
+|Template type|Keyword used|Description|Example use case|
+|---|---|----|-----|
+|Steps|steps: + template:|Reusable list of individual tasks (the smallest reusable unit).|A template for running unit tests, or a set of scripts for code scanning.|
+|Jobs|jobs: + template:|Reusable grouping of steps that run on a single agent.|A job template for building a Docker image, or a job to provision a temporary environment.|
+|Stages|stages: + template:|Reusable grouping of jobs.|A full "CI Build and Publish" stage, or a consistent "Deployment to Production" stage.|
+|Extends|extends: template:|Defines the entire outer structure of the pipeline, enforcing security and flow.|Forcing every pipeline to include a mandatory security scan stage before any other user-defined stages.|
+
+**How to Use a Template:**
+Templates use the - template: syntax and can take parameters to make them dynamic and configurable for each pipeline that uses them.
+
+**1. Template File Example (templates/build-steps.yml)**
+```
+# templates/build-steps.yml
+parameters:
+- name: projectFile
+  type: string
+  default: '**/*.csproj'
+- name: buildConfiguration
+  type: string
+  default: 'Release'
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'Restore NuGet Packages'
+  inputs:
+    command: 'restore'
+    projects: ${{ parameters.projectFile }}
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build Project'
+  inputs:
+    command: 'build'
+    projects: ${{ parameters.projectFile }}
+    arguments: '--configuration ${{ parameters.buildConfiguration }}'
+```
+
+**2. Main Pipeline File Example** (azure-pipelines.yml)
+
+This file includes the template and passes specific values to the parameters.
+This file defines a reusable set of steps, accepting parameters for the project file path and configuration.
+
+```
+# azure-pipelines.yml
+
+trigger:
+- main
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+# Use the template defined above
+- template: templates/build-steps.yml
+  parameters:
+    projectFile: 'src/WebApp/WebApp.csproj'
+    buildConfiguration: 'Debug' # Override the default 'Release'
+```
